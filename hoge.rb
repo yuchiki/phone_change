@@ -1,38 +1,46 @@
-def change(word)
-    v = /[aiueo]/
-    not_large_v = /[iueo]/
-    word.tr!('p', 'f')
-    word.gsub!(/\bf/, 'h')
-    word.gsub!(/f#{v}/) { |w| w.tr('f', 'w') }
-    word.gsub!(/w#{not_large_v}/) { |w| w.tr('w', '') }
-    word.gsub!(/eu/, 'yo:')
-    word.gsub!(/au/, 'o:')
-    word.gsub!(/ou/, 'o:')
-    word.gsub!(/ei/, 'e:')
-    word.gsub!(/iu/, 'yu:')
-    word.gsub!(/tu/, 'tsu')
-    word.gsub!(/du/, 'dsu')
-    word.gsub!(/ti/, 'chi')
-    word.gsub!(/ty/, 'ch')
-    word.gsub!(/di/, 'ji')
-    word.gsub!(/dy/, 'j')
-    word.gsub!(/si/, 'shi')
-    word.gsub!(/sy/, 'sh')
-    word.gsub!(/zi/, 'ji')
-    word.gsub!(/zy/, 'j')
-    word
+
+
+def apply_rule(word, rule)
+    if rule[1].is_a? Proc
+        word.gsub!(rule[0], &rule[1])
+    else
+        word.gsub!(rule[0], rule[1])
+    end
 end
 
-sample = 'paru sugite natu kinikerasi sirotapeno koromo posutepu amano kaguyama'
+def japanese
+    v = /[aiueo]/
+    not_large_v = /[iueo]/
+    p_weakning = [
+        [/p/, 'f'], [/\bf/, 'h'], [/f#{v}/, ->(w) { w.tr('f', 'w') }],
+        [/w#{not_large_v}/, ->(w) { w.tr('w', '') }]
+    ]
+    vowel_fusion = [
+        [/eu/, 'yo:'], [/au/, 'o:'], [/ou/, 'o:'], [/ei/, 'e:'], [/iu/, 'yu:']
+    ]
+    palatalization = [
+        [/tu/, 'tsu'], [/du/, 'dsu'],
+        [/ti/, 'chi'], [/ty/, 'ch'], [/di/, 'ji'], [/dy/, 'j'],
+        [/si/, 'shi'], [/sy/, 'sh'], [/zi/, 'ji'], [/zy/, 'j']
+    ]
+    p_weakning + vowel_fusion + palatalization
+end
+
+def change(rules, word)
+    rules.each { |rule| apply_rule(word, rule) }
+    word
+end
 
 def repl
     loop do
         print '>'
         input = STDIN.gets.strip
-        puts change(input) unless input.empty?
+        puts change(japanese, input) unless input.empty?
     end
 end
 
+sample = 'paru sugite natu kinikerasi sirotapeno koromo posutepu amano kaguyama'
+
 puts sample
-puts change(sample)
+puts change(japanese, sample)
 repl
